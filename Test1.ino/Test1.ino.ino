@@ -48,7 +48,7 @@ void loop() {
   //matrix.fillRect(boxY, boxX, boxWidth, boxHeight, matrix.Color333(0, 7, 0));
   checkButton();
   moveBox();
-  
+  //draw();
 }
 
 void loseGame(){
@@ -134,7 +134,10 @@ void checkAlign(){
 }
 
 void draw(){
-  //dope
+  matrix.fillRect(0, 0, 32, 32,black);
+  matrix.fillRect(0,0,8,8,white);
+  delay(100);
+  
 }
 
 
