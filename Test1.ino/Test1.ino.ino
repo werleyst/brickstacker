@@ -2,6 +2,8 @@
 #include <RGBmatrixPanel.h> // Hardware-specific library
 #include <Box.h>
 
+//_______________________________________________________________________________________________________
+//LED matrix set up
 // If your 32x32 matrix has the SINGLE HEADER input,
 // use this pinout:
 #define CLK 11  // MUST be on PORTB! (Use pin 11 on Mega)
@@ -24,14 +26,17 @@ uint16_t black = matrix.Color444(0, 0, 0);
 uint16_t white = matrix.Color444(15, 15, 15);
 uint16_t yellow = matrix.Color444(15, 15, 0);
 
-  int button = 52;
-  int boxWidth = 8;
-  int boxHeight = 4;
-  int level = 1;
-  int oldBoxX;
-  Box *boxes[8];
+
+//_______________________________________________________________________________________________________
+//Global variables
+int button = 52;
+int boxWidth = 8;
+int boxHeight = 4;
+int level = 1;
+Box *boxes[8]; //array of each layer of boxes
   
 
+//Set up matrix and array of boxes
 void setup() {
   pinMode(button, INPUT);
   matrix.begin();
@@ -41,22 +46,30 @@ void setup() {
   drawBox(boxes[0]);
 }
 
+//Cycle for gameplay
 void loop() {
-  cycleBox(boxes[level%8],min(level+3,10));
-  stopBox();
+  cycleBox(boxes[level%8],min(level+3,10)); //moves current box back and forth
+  checkButton(); //checks for button press
 }
 
-void stopBox(){
-  if(digitalRead(button) == HIGH){
+
+//_______________________________________________________________________________________________________
+//Checks button, if pressed then checks box and handles leveling/game over
+void checkButton(){
+  if(digitalRead(button) == HIGH){ //looks for button press
+
+    //first level player can go anywhere
     if(level==0){
       delay(1000);
       level++;
       drawBox(boxes[level]);
     }
-    else if(level%8==7){   //resets screen after top layer
+
+    //resets screen after top layer, starts at bottom again
+    else if(level%8==7){
       checkAlign();
 
-      matrix.fillScreen(matrix.Color333(0,0,0));
+      matrix.fillScreen(matrix.Color333(0,0,0)); //reset screen
       boxes[0]->xpos = boxes[7]->xpos;
       boxes[0]->width = boxes[7]->width;
       boxes[1]->width = boxes[0]->width;
@@ -67,6 +80,8 @@ void stopBox(){
       drawBox(boxes[1]);
       level++;
     }
+
+    //normal level, not first or top of screen
     else{
       checkAlign();
       delay(500);
@@ -75,6 +90,7 @@ void stopBox(){
   }
 }
 
+//Checks alignment of box after press. If there is error, the box falls and shrinks. If complete miss, game is over. Otherwise the level increases
 void checkAlign(){
   int error = boxes[level%8]->xpos - boxes[(level-1)%8]->xpos;
   int xpos = boxes[level%8]->xpos;
@@ -85,26 +101,35 @@ void checkAlign(){
   if(abs(error)>width){
     loseGame();
   }
+  
   else if(error < 0){
     boxes[level%8]->xpos+=error;
     boxes[level%8]->width-=error;
     fall = new Box(xpos,ypos,error);
     boxFall(fall);
   }
+  
   else if(error > 0){
     boxes[level%8]->width-=error;
     fall = new Box(xpos+width-error,ypos,error);
     boxFall(fall);
   }
+  
   level++;
   boxes[level%8]->width=width-error;
   boxes[level%8]->xpos=28;
 }
 
+
+//_______________________________________________________________________________________________________
+//Methods for working with boxes
+
+//draws the box in more concise way
 void drawBox(Box *b){
   matrix.fillRect(b->xpos, b->ypos, b->width, boxHeight,white); 
 }
 
+//moves box one pixel left or right based on direction
 void moveBox(Box *b){
   if(b->dir == 1){
     matrix.fillRect(b->xpos+b->width, b->ypos, 1, boxHeight,white);
@@ -118,6 +143,7 @@ void moveBox(Box *b){
   }
 }
 
+//moves box back and forth across entire screen, speed can change based on level
 void cycleBox(Box *b, int speed){
   if(b->xpos > matrix.width() || b->xpos < 0-b->width){
     b->dir = -b->dir;
@@ -126,6 +152,7 @@ void cycleBox(Box *b, int speed){
   delay(100.0/speed);
 }
 
+//used for making piece of box fall off the screen
 void boxFall(Box *b){
   while(b->ypos <= 32){
     matrix.fillRect(b->xpos, b->ypos+boxHeight, b->width, 1,white); 
@@ -135,7 +162,8 @@ void boxFall(Box *b){
   }
 }
 
-
+//_______________________________________________________________________________________________________
+//Handles the game over screen and reset
 void loseGame(){
   //screen turns black, says "game over" and gives score
   matrix.fillScreen(matrix.Color333(0, 0, 0));
