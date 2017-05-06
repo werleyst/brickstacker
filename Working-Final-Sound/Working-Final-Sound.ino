@@ -34,7 +34,6 @@ Adafruit_VS1053_FilePlayer musicPlayer =
 
 ////
 
-int button1 = 5;
 int button2 = 8;
 int button3 = 9;
 
@@ -66,7 +65,6 @@ void printDirectory(File dir, int numTabs) {
 
 void setup() {
   pinMode(A2, INPUT);
-  pinMode(button1, INPUT);
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
   
@@ -92,7 +90,7 @@ void setup() {
   printDirectory(SD.open("/"), 0);
   
   // Set volume for left, right channels. lower numbers == louder volume!
-  musicPlayer.setVolume(40,40);
+  musicPlayer.setVolume(20,20);
   
 
   /***** Two interrupt options! *******/ 
